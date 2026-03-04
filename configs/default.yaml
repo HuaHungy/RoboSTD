@@ -1,0 +1,119 @@
+# General Configuration
+project_name: "RoboSTD_Unified"
+log_level: "INFO"
+
+# Dataset Configuration
+dataset:
+  input_path: "data/raw"
+  output_path: "data/output"
+  train_split: 0.8
+  val_split: 0.1
+  test_split: 0.1
+
+# Joint Processing Rules (Mirror Mappings)
+joint_mirror_rules:
+  aloha:
+    - source: left_joint_1
+      target: right_joint_1
+      scale: -1.0
+    - source: right_joint_1
+      target: left_joint_1
+      scale: -1.0
+    - source: left_joint_2
+      target: right_joint_2
+      scale: -1.0
+    - source: right_joint_2
+      target: left_joint_2
+      scale: -1.0
+    - source: left_joint_3
+      target: right_joint_3
+      scale: -1.0
+    - source: right_joint_3
+      target: left_joint_3
+      scale: -1.0
+    - source: left_joint_4
+      target: right_joint_4
+      scale: -1.0
+    - source: right_joint_4
+      target: left_joint_4
+      scale: -1.0
+    - source: left_joint_5
+      target: right_joint_5
+      scale: -1.0
+    - source: right_joint_5
+      target: left_joint_5
+      scale: -1.0
+    - source: left_joint_6
+      target: right_joint_6
+      scale: -1.0
+    - source: right_joint_6
+      target: left_joint_6
+      scale: -1.0
+    - source: left_joint_7
+      target: right_joint_7
+      scale: -1.0
+    - source: right_joint_7
+      target: left_joint_7
+      scale: -1.0
+    - source: left_gripper
+      target: right_gripper
+      scale: 1.0
+    - source: right_gripper
+      target: left_gripper
+      scale: 1.0
+
+  realman:
+    - source: left_arm_joint_1_rad
+      target: right_arm_joint_1_rad
+      scale: -1.0
+    - source: right_arm_joint_1_rad
+      target: left_arm_joint_1_rad
+      scale: -1.0
+    - source: left_arm_joint_2_rad
+      target: right_arm_joint_2_rad
+      scale: -1.0
+    - source: right_arm_joint_2_rad
+      target: left_arm_joint_2_rad
+      scale: -1.0
+    - source: left_arm_joint_3_rad
+      target: right_arm_joint_3_rad
+      scale: -1.0
+    - source: right_arm_joint_3_rad
+      target: left_arm_joint_3_rad
+      scale: -1.0
+    - source: left_arm_joint_4_rad
+      target: right_arm_joint_4_rad
+      scale: -1.0
+    - source: right_arm_joint_4_rad
+      target: left_arm_joint_4_rad
+      scale: -1.0
+    - source: left_arm_joint_5_rad
+      target: right_arm_joint_5_rad
+      scale: -1.0
+    - source: right_arm_joint_5_rad
+      target: left_arm_joint_5_rad
+      scale: -1.0
+    - source: left_arm_joint_6_rad
+      target: right_arm_joint_6_rad
+      scale: -1.0
+    - source: right_arm_joint_6_rad
+      target: left_arm_joint_6_rad
+      scale: -1.0
+    - source: left_arm_joint_7_rad
+      target: right_arm_joint_7_rad
+      scale: -1.0
+    - source: right_arm_joint_7_rad
+      target: left_arm_joint_7_rad
+      scale: -1.0
+    - source: left_gripper_open
+      target: right_gripper_open
+      scale: 1.0
+    - source: right_gripper_open
+      target: left_gripper_open
+      scale: 1.0
+
+# Video Processing Defaults
+video_processing:
+  target_fps: 30
+  target_resolution: [1920, 1080]
+  checksum: true

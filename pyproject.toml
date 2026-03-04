@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "robostd-unified"
+version = "0.1.0"
+description = "Unified Robotic Video and Joint Processing Pipeline"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+authors = [
+    {name = "Your Name", email = "your.email@example.com"},
+]
+dependencies = [
+    "opencv-python>=4.5.0",
+    "pandas>=1.3.0",
+    "numpy>=1.20.0",
+    "pyarrow>=5.0.0",
+    "PyYAML>=5.4.0",
+]
+
+[project.scripts]
+robostd = "scripts.main:main"
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q"
+testpaths = [
+    "tools/tests",
+]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"
