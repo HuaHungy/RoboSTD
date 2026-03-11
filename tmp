@@ -1,0 +1,5 @@
+下一个问题：将配置中的source和target 向上一级目录修改，以便对所有字段的数据进行操作。如中的“left_arm_joint_1_rad”可以
+
+python tools/urdf2mjcf_with_sites.py /home/user/RoboTwin/assets/embodiments/aloha-agilex/urdf/arx5_description_isaac.urdf 
+
+python /home/user/robostd/RoboSTD_converter/tools/urdf2mjcf_with_sites.py /home/user/RoboTwin/assets/embodiments/aloha-agilex/urdf/arx5_description_isaac.urdf --left_eef_body_name fl_joint6 --right_eef_body_name fr_joint6

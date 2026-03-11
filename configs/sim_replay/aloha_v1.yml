@@ -1,0 +1,106 @@
+
+sim:
+  xml_path: "configs/sim_replay/mjcfs/aloha_v1/urdf/arx5_description_isaac_with_sites.xml"  # 仿真模型路径
+
+  module_file: config.sim_replay.agilex
+  function: get_mjcf_gripper_joint_data
+
+  joints:
+    fl_joint1: left_waist
+    fl_joint2: left_shoulder
+    fl_joint3: left_elbow
+    fl_joint4: left_forearm_roll
+    fl_joint5: left_wrist_angle
+    fl_joint6: left_wrist_rotate
+    fr_joint1: right_waist
+    fr_joint2: right_shoulder
+    fr_joint3: right_elbow
+    fr_joint4: right_forearm_roll
+    fr_joint5: right_wrist_angle
+    fr_joint6: right_wrist_rotate
+    fl_joint7: fl_joint7
+    fl_joint8: fl_joint7
+    fr_joint7: fr_joint7
+    fr_joint8: fr_joint7
+                                          
+  # 物理世界的限制 (MuJoCo 中的实际行程, 单位: 米或弧度)
+  gripper_config:
+    gripper_name:
+      - right_gripper
+      - left_gripper
+    gripper_joint_max: 0.0476  # 物理完全张开的宽度
+    gripper_joint_min: 0.0   # 物理完全闭合的宽度
+    gripper: True
+
+  camera:   # 相机参数可以从 tools/sim_replay/get_camara.py 中获取
+    lookat_x: 0.487  
+    lookat_y: -0.000
+    lookat_z: 0.824
+    distance: 2.000
+    azimuth: -0.250
+    elevation: -81.250
+
+default_version:
+  gripper_config:
+    gripper_value_open: 1.0  # 数据中表示"开"的值
+    gripper_value_close: 0.0 # 数据中表示"关"的值
+
+mcap_version:
+  gripper_config:
+    gripper_value_open: 0.8  # 数据中表示"开"的值
+    gripper_value_close: 0.0 # 数据中表示"关"的值
+
+realsense_version:
+  gripper_config:
+    gripper_value_open: 0.8
+    gripper_value_close: 0.0
+
+depthhead_version:
+  gripper_config:
+    gripper_value_open: 0.8
+    gripper_value_close: 0.0
+
+headdown_version:
+  gripper_config:
+    gripper_value_open: 0.8
+    gripper_value_close: 0.0
+
+masterpuppet_version:
+  gripper_config:
+    gripper_value_open: 0.8
+    gripper_value_close: 0.0
+
+h5_mp4:
+  gripper_config:
+    gripper_value_open: 0.8
+    gripper_value_close: -0.02
+
+h5_mp4_new:
+  gripper_config:
+    gripper_value_open: 0.8
+    gripper_value_close: 0.0
+
+mult_sensor:
+  gripper_config:
+    gripper_value_open: 0.8
+    gripper_value_close: 0.0
+
+show_plt: 
+  # 第一张图
+  - 
+    - left_gripper
+    - right_gripper
+  # 第二张图
+  # -
+  #   - left_eef_pos_x_m
+  #   - left_eef_pos_y_m
+  #   - left_eef_pos_z_m
+  # 第三张图
+  # -
+    # - right_gripper_open_scale
+  # 第四张图
+  # -
+  #   - right_eef_pos_x_m
+  #   - right_eef_pos_y_m
+  #   - right_eef_pos_z_m
+

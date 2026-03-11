@@ -108,6 +108,13 @@ class JointProcessor:
                 src_locs = field_map.get(src_name, [])
                 tgt_locs = field_map.get(tgt_name, [])
                 
+                if not src_locs:
+                    print(f"[Warning] Source field '{src_name}' not found in dataset info.")
+                if not tgt_locs:
+                    print(f"[Warning] Target field '{tgt_name}' not found in dataset info.")
+
+                print(f"[JointProcessor] Mirroring: {src_name} -> {tgt_name} (scale: {scale})")
+
                 for s_col, s_idx in src_locs:
                     for t_col, t_idx in tgt_locs:
                         if s_col == t_col:
