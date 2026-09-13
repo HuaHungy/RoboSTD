@@ -22,6 +22,22 @@ const simulationDemos = simulationDemoGroups.flatMap(({ prefix, count, title }) 
   }),
 )
 
+const realWorldDemoGroups = [
+  { prefix: 'bowl-placement', count: 3, title: 'Bowl Placement', subtitle: 'Rigid-object placement' },
+  { prefix: 'cup-collection', count: 4, title: 'Cup Collection', subtitle: 'Bimanual spatial coordination' },
+  { prefix: 'flower-arrangement', count: 3, title: 'Flower Arrangement', subtitle: 'Precision placement' },
+  { prefix: 'sandwich-making', count: 3, title: 'Sandwich Making', subtitle: 'Long-horizon coordination' },
+  { prefix: 'towel-storage', count: 3, title: 'Towel Storage', subtitle: 'Deformable-object manipulation' },
+]
+
+const realWorldDemos = realWorldDemoGroups.flatMap(({ prefix, count, title, subtitle }) =>
+  Array.from({ length: count }, (_, index) => ({
+    title,
+    subtitle,
+    src: `./media/demos/realworld-demo/${prefix}-${index + 1}.gif`,
+  })),
+)
+
 export const project = {
   meta: {
     shortTitle: 'RoboSTD',
@@ -189,13 +205,7 @@ export const project = {
       title: 'Real-World Demonstrations',
       subtitle: 'AgileX ALOHA task rollouts',
       rows: 2,
-      tasks: [
-        { title: 'Bowl Placement', subtitle: 'Rigid-object placement', src: './media/demos/realworld-demo/bowl-placement.gif' },
-        { title: 'Towel Storage', subtitle: 'Deformable-object manipulation', src: './media/demos/realworld-demo/towel-storage.gif' },
-        { title: 'Flower Arrangement', subtitle: 'Precision placement', src: './media/demos/realworld-demo/flower-arrangement.gif' },
-        { title: 'Cup Collection', subtitle: 'Bimanual spatial coordination', src: './media/demos/realworld-demo/cup-collection.gif' },
-        { title: 'Sandwich Making', subtitle: 'Long-horizon coordination', src: './media/demos/realworld-demo/sandwich-making.gif' },
-      ],
+      tasks: realWorldDemos,
     },
   ],
   experimentsLead: 'Does RoboSTD provide effective, coordinated, and balanced bimanual supervision?',
