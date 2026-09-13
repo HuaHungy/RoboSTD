@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && node scripts/finalize-singlefile.js",
+    "build": "vite build",
+    "build:anonymous": "vite build --mode anonymous && node scripts/finalize-singlefile.js",
     "preview": "vite preview"
   },
   "dependencies": {
