@@ -11,6 +11,8 @@ const simulationDemoGroups = [
   { prefix: 'turn_switch', count: 2, title: 'Turn Switch' },
 ]
 
+const isAnonymousBuild = import.meta.env.MODE === 'anonymous'
+
 const simulationDemos = simulationDemoGroups.flatMap(({ prefix, count, title }) =>
   Array.from({ length: count }, (_, index) => {
     const number = index + 1
@@ -78,7 +80,9 @@ export const project = {
       download: true,
     },
     { label: 'arXiv', note: 'Coming soon', href: '#', icon: 'archive', disabled: true },
-    { label: 'Code', note: 'Anonymous repository', href: 'https://anonymous.4open.science/r/RoboSTD_code/', icon: 'code', external: true },
+    ...(isAnonymousBuild
+      ? [{ label: 'Code', note: 'Anonymous repository', href: 'https://anonymous.4open.science/r/RoboSTD_code/', icon: 'code', external: true }]
+      : []),
   ],
   teaser: {
     src: './media/paper/overview.svg',
