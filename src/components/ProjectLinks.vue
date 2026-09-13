@@ -15,6 +15,8 @@ defineProps({
       :class="{ 'resource-link--placeholder': link.disabled || link.href === '#' }"
       :href="link.href"
       :download="link.download || undefined"
+      :target="link.external ? '_blank' : undefined"
+      :rel="link.external ? 'noreferrer' : undefined"
       :aria-disabled="link.disabled || link.href === '#'"
       @click="(link.disabled || link.href === '#') && $event.preventDefault()"
     >

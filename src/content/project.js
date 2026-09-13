@@ -24,18 +24,20 @@ const simulationDemos = simulationDemoGroups.flatMap(({ prefix, count, title }) 
 
 const realWorldDemoGroups = [
   { prefix: 'bowl-placement', count: 3, title: 'Bowl Placement', subtitle: 'Rigid-object placement' },
-  { prefix: 'cup-collection', count: 4, title: 'Cup Collection', subtitle: 'Bimanual spatial coordination' },
+  { prefix: 'cup-collection', count: 4, segments: 3, title: 'Cup Collection', subtitle: 'Bimanual spatial coordination' },
   { prefix: 'flower-arrangement', count: 3, title: 'Flower Arrangement', subtitle: 'Precision placement' },
   { prefix: 'sandwich-making', count: 3, title: 'Sandwich Making', subtitle: 'Long-horizon coordination' },
   { prefix: 'towel-storage', count: 3, title: 'Towel Storage', subtitle: 'Deformable-object manipulation' },
 ]
 
-const realWorldDemos = realWorldDemoGroups.flatMap(({ prefix, count, title, subtitle }) =>
-  Array.from({ length: count }, (_, index) => ({
-    title,
-    subtitle,
-    src: `./media/demos/realworld-demo/${prefix}-${index + 1}.gif`,
-  })),
+const realWorldDemos = realWorldDemoGroups.flatMap(({ prefix, count, segments = 1, title, subtitle }) =>
+  Array.from({ length: count }, (_, index) =>
+    Array.from({ length: segments }, (_, segment) => ({
+      title,
+      subtitle,
+      src: `./media/demos/realworld-demo/${prefix}-${index + 1}${segments > 1 ? `-${segment + 1}` : ''}.gif`,
+    })),
+  ).flat(),
 )
 
 export const project = {
@@ -76,7 +78,7 @@ export const project = {
       download: true,
     },
     { label: 'arXiv', note: 'Coming soon', href: '#', icon: 'archive', disabled: true },
-    { label: 'Code', note: 'Coming soon', href: '#', icon: 'code', disabled: true },
+    { label: 'Code', note: 'Anonymous repository', href: 'https://anonymous.4open.science/r/RoboSTD_code/', icon: 'code', external: true },
   ],
   teaser: {
     src: './media/paper/overview.svg',
