@@ -24,9 +24,26 @@ function handleKeydown(event) {
   if (event.key === 'Escape') closeFigure()
 }
 
+function readThemePreference() {
+  try {
+    return window.localStorage.getItem('robostd-theme')
+  } catch {
+    // Anonymous GitHub serves project pages in a sandboxed, opaque origin.
+    return null
+  }
+}
+
+function saveThemePreference(value) {
+  try {
+    window.localStorage.setItem('robostd-theme', value)
+  } catch {
+    // Theme still works for the current page even when storage is unavailable.
+  }
+}
+
 function setTheme(isDark) {
   document.documentElement.dataset.theme = isDark ? 'dark' : 'light'
-  window.localStorage.setItem('robostd-theme', isDark ? 'dark' : 'light')
+  saveThemePreference(isDark ? 'dark' : 'light')
 }
 
 function toggleTheme() {
@@ -39,7 +56,7 @@ watch(lightboxFigure, (figure) => {
 })
 
 onMounted(() => {
-  const savedTheme = window.localStorage.getItem('robostd-theme')
+  const savedTheme = readThemePreference()
   isDarkMode.value = savedTheme === 'dark'
   setTheme(isDarkMode.value)
   window.addEventListener('keydown', handleKeydown)
