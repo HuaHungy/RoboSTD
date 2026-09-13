@@ -90,7 +90,6 @@ onBeforeUnmount(() => window.clearTimeout(resumeTimer))
             <img :src="task.src" :alt="task.title" loading="lazy" />
             <div>
               <strong>{{ task.title }}</strong>
-              <span>{{ task.subtitle }}</span>
             </div>
           </article>
         </template>
