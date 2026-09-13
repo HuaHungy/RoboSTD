@@ -6,17 +6,46 @@ const props = defineProps({
   rows: { type: Number, default: 1 },
 })
 
-const taskRows = computed(() => {
-  if (props.rows < 2) return [props.tasks]
+function shuffle(items) {
+  const result = [...items]
 
-  return props.tasks.reduce(
-    (groups, task, index) => {
-      groups[index % 2].push(task)
-      return groups
-    },
-    [[], []],
-  )
-})
+  for (let index = result.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(Math.random() * (index + 1))
+    ;[result[index], result[swapIndex]] = [result[swapIndex], result[index]]
+  }
+
+  return result
+}
+
+function hasAdjacentDuplicate(row) {
+  if (row.length < 2) return false
+
+  return row.some((task, index) => {
+    const nextTask = row[(index + 1) % row.length]
+    return task.title === nextTask.title
+  })
+}
+
+function buildTaskRows(tasks, rowCount) {
+  if (rowCount < 2) return [shuffle(tasks)]
+
+  let lastRows = [[], []]
+
+  for (let attempt = 0; attempt < 300; attempt += 1) {
+    const rows = [[], []]
+
+    shuffle(tasks).forEach((task, index) => {
+      rows[index % 2].push(task)
+    })
+    lastRows = rows
+
+    if (rows.every((row) => !hasAdjacentDuplicate(row))) return rows
+  }
+
+  return lastRows
+}
+
+const taskRows = computed(() => buildTaskRows(props.tasks, props.rows))
 
 const isPaused = ref(false)
 let resumeTimer
@@ -54,7 +83,7 @@ onBeforeUnmount(() => window.clearTimeout(resumeTimer))
         <template v-for="loop in 2" :key="loop">
           <article
             v-for="task in row"
-            :key="rowIndex + '-' + loop + '-' + task.title"
+            :key="rowIndex + '-' + loop + '-' + task.src"
             class="video-card"
             :aria-hidden="loop === 2"
           >

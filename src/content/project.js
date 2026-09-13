@@ -1,11 +1,26 @@
-const simulationDemos = Array.from({ length: 26 }, (_, index) => {
-  const number = String(index + 1).padStart(2, '0')
-  return {
-    title: `Simulation Demo ${number}`,
-    subtitle: 'Full rollout',
-    src: `./media/demos/simulation-demo/simulation-demo-${number}.gif`,
-  }
-})
+const simulationDemoGroups = [
+  { prefix: 'adjust_bottle', count: 4, title: 'Adjust Bottle' },
+  { prefix: 'click_alarmclock', count: 4, title: 'Click Alarmclock' },
+  { prefix: 'move_pillbottle_pad', count: 2, title: 'Move Pillbottle Pad' },
+  { prefix: 'open_laptop', count: 2, title: 'Open Laptop' },
+  { prefix: 'place_can_basket', count: 4, title: 'Place Can Basket' },
+  { prefix: 'place_container_plate', count: 2, title: 'Place Container Plate' },
+  { prefix: 'place_phone_stand', count: 2, title: 'Place Phone Stand' },
+  { prefix: 'rotate_qrcode', count: 2, title: 'Rotate QRCode' },
+  { prefix: 'stamp_seal', count: 2, title: 'Stamp Seal' },
+  { prefix: 'turn_switch', count: 2, title: 'Turn Switch' },
+]
+
+const simulationDemos = simulationDemoGroups.flatMap(({ prefix, count, title }) =>
+  Array.from({ length: count }, (_, index) => {
+    const number = index + 1
+    return {
+      title,
+      subtitle: 'Full rollout',
+      src: `./media/demos/simulation-demo/${prefix}-${number}.gif`,
+    }
+  }),
+)
 
 export const project = {
   meta: {
