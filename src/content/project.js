@@ -12,6 +12,10 @@ const simulationDemoGroups = [
 ]
 
 const isAnonymousBuild = import.meta.env.MODE === 'anonymous'
+const publicAuthors = [
+  'Hongyu Wu*1,2 · Chong Liu*1,2 · Shaoxuan Xie1 · Shaqi Luo1 · Hanyu Feng2',
+  'Shihan Wu†1 · Guocai Yao†1',
+]
 
 const simulationDemos = simulationDemoGroups.flatMap(({ prefix, count, title }) =>
   Array.from({ length: count }, (_, index) => {
@@ -47,7 +51,7 @@ export const project = {
     shortTitle: 'RoboSTD',
     venue: 'ICRA Submission',
     year: '2027',
-    status: 'Anonymous review version',
+    status: isAnonymousBuild ? 'Anonymous review version' : 'Public version',
   },
   hero: {
     titlePrefix: 'Robo',
@@ -68,21 +72,27 @@ export const project = {
     { value: '2.11×', label: 'Cup Collection Gain', note: 'over the single-arm baseline' },
     { value: '13.0 pp', label: 'Final Arm-Side Gap', note: 'reduced from 28.3 pp' },
   ],
-  authors: ['Anonymous Authors'],
-  affiliation: 'Submitted to the IEEE International Conference on Robotics and Automation',
-  authorNote: 'Author information withheld for anonymous review.',
+  authors: isAnonymousBuild ? ['Anonymous Authors'] : publicAuthors,
+  affiliation: isAnonymousBuild
+    ? 'Submitted to the IEEE International Conference on Robotics and Automation'
+    : '1 Beijing Academy of Artificial Intelligence · 2 Beijing University of Posts and Telecommunications',
+  authorNote: isAnonymousBuild ? 'Author information withheld for anonymous review.' : '* Equal contribution · † Corresponding authors',
   links: [
     {
       label: 'Paper',
       note: 'PDF',
-      href: './media/paper/RoboSTD-paper.pdf',
+      href: './media/paper/RoboSTD.pdf',
       icon: 'paper',
       download: true,
     },
     { label: 'arXiv', note: 'Coming soon', href: '#', icon: 'archive', disabled: true },
-    ...(isAnonymousBuild
-      ? [{ label: 'Code', note: 'Anonymous repository', href: 'https://anonymous.4open.science/r/RoboSTD_code/', icon: 'code', external: true }]
-      : []),
+    {
+      label: 'Code',
+      note: isAnonymousBuild ? 'Anonymous repository' : 'GitHub repository',
+      href: isAnonymousBuild ? 'https://anonymous.4open.science/r/RoboSTD_code/' : 'https://github.com/HuaHungy/RoboSTD.git',
+      icon: 'code',
+      external: true,
+    },
   ],
   teaser: {
     src: './media/paper/overview.svg',
