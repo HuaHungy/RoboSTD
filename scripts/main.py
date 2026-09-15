@@ -1,3 +1,36 @@
+"""
+python scripts/main.py \
+    --input /home/huahungy/hf_cache/lerobot/aloha_all_both_origin_50 \
+    --output /home/huahungy/hf_cache/lerobot/aloha_all_both_origin_50/ \
+    --rule agilex \
+    --ops mirror
+python scripts/main.py \
+    --input /home/huahungy/hf_cache/lerobot/right_merged_50/ \
+    --output /home/huahungy/hf_cache/lerobot/right_merged_50_mirrored/ \
+    --rule agilex \
+    --ops mirror
+
+python scripts/main.py \
+    --input /home/huaahungy/act/data/Agilex_Cobot_Magic_Put_the_bowl_on_the_plate_right_0509 \
+    --output /home/huahungy/act/data/Agilex_Cobot_Magic_Put_the_bowl_on_the_plate_right_mirrored_0509 \
+    --rule aloha \
+    --ops mirror
+
+python scripts/main.py \
+    --input /home/huaahungy/act/data/Agilex_Cobot_Magic_Put_the_towel_in_the_basket_left_0511 \
+    --output /home/huahungy/act/data/Agilex_Cobot_Magic_Put_the_towel_in_the_basket_left_mirrored_0511 \
+    --rule aloha \
+    --ops mirror
+
+python scripts/main.py \
+    --input /home/huaahungy/act/data/Agilex_Cobot_Magic_Put_the_towel_in_the_basket_right_0509 \
+    --output /home/huahungy/act/data/Agilex_Cobot_Magic_Put_the_towel_in_the_basket_right_mirrored_0509 \
+    --rule aloha \
+    --ops mirror
+
+"""
+
+
 import argparse
 import sys
 import os
@@ -94,9 +127,16 @@ def main():
     parser = argparse.ArgumentParser(description="RoboSTD Unified Pipeline")
     parser.add_argument('--input', help="Input dataset directory")
     parser.add_argument('--output', help="Output directory")
-    parser.add_argument('--config', default="configs/default.yaml", help="Path to config file")
-    parser.add_argument('--ops', help="Comma separated operations (mirror,reverse,convert,crop_half,crop_advanced,mask_mirror)")
+    parser.add_argument('--config', default=str(Path(__file__).resolve().parent.parent / "configs/default.yaml"), help="Path to config file")
+    parser.add_argument('--ops', help="Comma separated operations (mirror,reverse,convert,crop_half,crop_advanced,mask_mirror,reconstruct)")
     parser.add_argument('--rule', help="Robot rule name (aloha, realman)")
+    # Stage 2 (reconstruct) options
+    parser.add_argument('--mirror-input', help="Mirrored dataset directory (required for reconstruct ops)")
+    parser.add_argument('--source-arm', default=None, choices=['L', 'R'], help="Arm active in the single-arm demo (reconstruct)")
+    parser.add_argument('--n-units', type=int, default=None, help="Number of manipulation units (reconstruct)")
+    parser.add_argument('--language', default='', help="Task language instruction (reconstruct/LLM context)")
+    parser.add_argument('--planner', default=None, choices=['default', 'openai'],
+                        help="Coordination-constraint planner (reconstruct)")
     
     # If no args, interactive
     if len(sys.argv) == 1:
@@ -113,7 +153,20 @@ def main():
     if args.ops:
         for op in args.ops.split(','):
             operations.append({'name': op.strip()})
-            
+
+    # Stage 2: pseudo-bimanual reconstruction from orig + mirrored pair.
+    if 'reconstruct' in [op['name'] for op in operations]:
+        if not args.mirror_input:
+            print("Error: --mirror-input is required for the reconstruct operation.")
+            return
+        pipeline = Pipeline(args.config, args.rule)
+        pipeline.reconstruct_dataset(
+            args.input, args.mirror_input, args.output,
+            n_units=args.n_units, source_arm=args.source_arm, language=args.language,
+            planner_name=args.planner,
+        )
+        return
+
     pipeline = Pipeline(args.config, args.rule)
     pipeline.process_dataset(args.input, args.output, operations)
 

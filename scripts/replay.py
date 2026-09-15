@@ -10,7 +10,7 @@
 
 """ Usage example:
 python scripts/replay.py \
-    --repo_path data/input/Agilex_Cobot_Magic_pour_water_into_cup_0 \
+    --repo_path /home/huahungy/act/data/aloha/Agilex_Cobot_Magic_pick_up_bottle_left \
     --config_name agilex \
     --data_source data \
     --data_type all \
