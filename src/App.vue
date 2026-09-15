@@ -111,7 +111,7 @@ onBeforeUnmount(() => {
         <a href="#bibtex" :class="{ 'is-active': activeSection === 'bibtex' }">BibTeX</a>
       </nav>
       <div class="top-nav__actions">
-        <a class="top-nav__paper" href="./media/paper/RoboSTD-paper.pdf" download>Paper ↗</a>
+        <a class="top-nav__paper" :href="project.links[0].href" download>Paper ↗</a>
         <button
           type="button"
           class="theme-toggle"
@@ -151,7 +151,11 @@ onBeforeUnmount(() => {
         <p class="hero__tagline">{{ project.hero.tagline }}</p>
 
         <div class="authors">
-          <strong v-for="author in project.authors" :key="author">{{ author }}</strong>
+          <div v-for="(line, lineIndex) in project.authors" :key="lineIndex" class="authors__names">
+            <strong v-for="author in line" :key="author.name">
+              {{ author.name }}<sup v-if="author.marker">{{ author.marker }}</sup>
+            </strong>
+          </div>
           <span>{{ project.affiliation }}</span>
           <small>{{ project.authorNote }}</small>
         </div>

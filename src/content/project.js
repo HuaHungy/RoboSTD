@@ -13,9 +13,19 @@ const simulationDemoGroups = [
 
 const isAnonymousBuild = import.meta.env.MODE === 'anonymous'
 const publicAuthors = [
-  'Hongyu Wu*1,2 · Chong Liu*1,2 · Shaoxuan Xie1 · Shaqi Luo1 · Hanyu Feng2',
-  'Shihan Wu†1 · Guocai Yao†1',
+  [
+    { name: 'Hongyu Wu', marker: '*1,2' },
+    { name: 'Chong Liu', marker: '*1,2' },
+    { name: 'Shaoxuan Xie', marker: '1' },
+    { name: 'Shaqi Luo', marker: '1' },
+    { name: 'Hanyu Feng', marker: '2' },
+  ],
+  [
+    { name: 'Shihan Wu', marker: '†1' },
+    { name: 'Guocai Yao', marker: '†1' },
+  ],
 ]
+const anonymousAuthors = [[{ name: 'Anonymous Authors', marker: '' }]]
 
 const simulationDemos = simulationDemoGroups.flatMap(({ prefix, count, title }) =>
   Array.from({ length: count }, (_, index) => {
@@ -72,7 +82,7 @@ export const project = {
     { value: '2.11×', label: 'Cup Collection Gain', note: 'over the single-arm baseline' },
     { value: '13.0 pp', label: 'Final Arm-Side Gap', note: 'reduced from 28.3 pp' },
   ],
-  authors: isAnonymousBuild ? ['Anonymous Authors'] : publicAuthors,
+  authors: isAnonymousBuild ? anonymousAuthors : publicAuthors,
   affiliation: isAnonymousBuild
     ? 'Submitted to the IEEE International Conference on Robotics and Automation'
     : '1 Beijing Academy of Artificial Intelligence · 2 Beijing University of Posts and Telecommunications',
@@ -237,11 +247,18 @@ export const project = {
       { label: 'Scale', text: 'No additional task-specific bimanual demonstrations' },
     ],
   },
-  bibtex: `@inproceedings{anonymous2027robostd,
+  bibtex: isAnonymousBuild
+    ? `@inproceedings{anonymous2027robostd,
   title     = {RoboSTD: Zero-Shot Single-to-Dual Transfer via
                Sagittal Mirroring for Bimanual Learning},
   author    = {Anonymous Authors},
   booktitle = {IEEE International Conference on Robotics and Automation},
+  year      = {2027}
+}`
+    : `@inproceedings{wu2027robostd,
+  title     = {RoboSTD: Zero-Shot Single-to-Dual Transfer via Sagittal Mirroring for Bimanual Learning},
+  author    = {Wu, Hongyu and Liu, Chong and Xie, Shaoxuan and Luo, Shaqi and Feng, Hanyu and Wu, Shihan and Yao, Guocai},
+  booktitle = {2027 IEEE International Conference on Robotics and Automation},
   year      = {2027}
 }`,
 }
