@@ -56,7 +56,10 @@ class VideoReader:
         self.frame_iter = None
         self.width = 640
         self.height = 480
-        
+        self.is_image = False
+        self._init_video()
+    
+    def _init_video(self):
         if self.use_av:
             try:
                 self.container = av.open(self.video_path)
@@ -106,6 +109,74 @@ class VideoReader:
             self.container.close()
         if self.cap:
             self.cap.release()
+
+
+class ImageReader:
+    """Wrapper to handle image sequence loading from directory"""
+    def __init__(self, image_dir, image_key):
+        self.image_dir = Path(image_dir)
+        self.image_key = image_key
+        self.frame_idx = 0
+        self.width = 640
+        self.height = 480
+        self.total_frames = 0
+        self._episode_idx = -1          # 初始化为 -1，等待 set_episode 赋值
+        # 不再此处调用 _init_images，由 set_episode 触发
+
+    def _init_images(self):
+        """Initialize image sequence - find all frames for this episode"""
+        if self._episode_idx < 0:
+            print("Warning: episode_idx not set, cannot init images.")
+            return
+
+        episode_pattern = f"episode_{self._episode_idx:06d}"
+        self.episode_dir = self.image_dir / episode_pattern
+
+        if not self.episode_dir.exists():
+            print(f"Warning: Image directory not found: {self.episode_dir}")
+            return
+
+        # 按文件名排序，确保顺序正确
+        self.frame_files = sorted(
+            list(self.episode_dir.glob("frame_*.jpg")) + 
+            list(self.episode_dir.glob("frame_*.png"))
+        )
+        self.total_frames = len(self.frame_files)
+
+        if self.total_frames > 0:
+            first_img = cv2.imread(str(self.frame_files[0]))
+            if first_img is not None:
+                self.height, self.width = first_img.shape[:2]
+
+    def set_episode(self, episode_idx):
+        """Set the episode index and reinitialize"""
+        self._episode_idx = episode_idx
+        self.frame_idx = 0
+        self._init_images()
+
+    def read(self):
+        """Read next frame from image sequence"""
+        if self.frame_idx >= self.total_frames:
+            return False, None
+
+        try:
+            frame_path = self.frame_files[self.frame_idx]
+            img = cv2.imread(str(frame_path))
+
+            if img is None or img.size == 0:
+                print(f"Error: Failed to read image: {frame_path}")
+                return False, None
+
+            img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+            self.frame_idx += 1
+            return True, img_rgb
+
+        except Exception as e:
+            print(f"Error reading image frame {self.frame_idx}: {e}")
+            return False, None
+
+    def release(self):
+        pass
 
 def run_replay(repo_path, config_name, data_source="data", data_type="all", episode_idx=0, auto_close=True, version="version"):
     # 解析配置文件路径
@@ -169,13 +240,18 @@ def run_replay(repo_path, config_name, data_source="data", data_type="all", epis
             render_height=480
         )
     
-    # 打开视频
+    # 打开视频或图片
     # 路径格式：videos/chunk-num/camera_name/episode_num.mp4
+    # 或：images/{image_key}/episode_{episode_index:06d}/frame_{frame_index:06d}.jpg
     chunk_idx = episode_idx // 1000
     chunk_dir_name = f"chunk-{chunk_idx:03d}"
     video_chunk_path = Path(repo_path) / "videos" / chunk_dir_name
+    image_chunk_path = Path(repo_path) / "images"
     
     video_readers = {}
+    image_readers = {}
+    
+    # 首先尝试加载视频
     if video_chunk_path.exists():
         print(f"Searching for videos in: {video_chunk_path}")
         for cam_dir in video_chunk_path.iterdir():
@@ -191,6 +267,25 @@ def run_replay(repo_path, config_name, data_source="data", data_type="all", epis
                     print(f"Video not found in {cam_dir}: {video_path}")
     else:
         print(f"Warning: Video chunk directory not found at {video_chunk_path}")
+    
+    # 如果没有视频，尝试加载图片
+    if not video_readers and image_chunk_path.exists():
+        print(f"Searching for images in: {image_chunk_path}")
+        # 直接扫描 images 目录下的所有子目录，每个子目录即一个相机源
+        for subdir in sorted(image_chunk_path.iterdir()):
+            if subdir.is_dir():
+                cam_name = subdir.name  # 完整名称，如 observation.images.image_left
+                img_dir = subdir
+                print(f"Found image directory: {img_dir}")
+                reader = ImageReader(img_dir, cam_name)
+                reader.set_episode(episode_idx)
+                if reader.total_frames > 0:
+                    image_readers[cam_name] = reader
+                    print(f"Found {reader.total_frames} frames for {cam_name}")
+                else:
+                    print(f"Warning: No frames found in {img_dir}")
+    # 合并 video_readers 和 image_readers
+    all_media_readers = {**video_readers, **image_readers}
 
     # Define layout keywords mapping
     def get_layout_pos(name):
@@ -222,13 +317,13 @@ def run_replay(repo_path, config_name, data_source="data", data_type="all", epis
         
         return col, row
 
-    if not video_readers:
+    if not all_media_readers:
         video_container = rrb.Spatial2DView(origin="/01_videos", name="Videos")
     else:
         # Grid: [col][row] -> list of views
         grid = [[[] for _ in range(3)] for _ in range(3)]
         
-        for cam_name in sorted(video_readers.keys()):
+        for cam_name in sorted(all_media_readers.keys()):
             col, row = get_layout_pos(cam_name)
             # view = rrb.Spatial2DView(origin=f"/01_videos/{cam_name}", name=cam_name.split(".")[-1]) # Use simpler name if possible
             view = rrb.Spatial2DView(origin=f"/01_videos/{cam_name}/image", name=cam_name)
@@ -286,8 +381,8 @@ def run_replay(repo_path, config_name, data_source="data", data_type="all", epis
             
             rr.set_time_sequence("frame_index", frame_idx)
             
-            # 1. 记录视频（加前缀保证顺序）
-            for cam_name, reader in video_readers.items():
+            # 1. 记录视频或图片（加前缀保证顺序）
+            for cam_name, reader in all_media_readers.items():
                 ret, frame_rgb = reader.read()
                 
                 if not ret or frame_rgb is None:

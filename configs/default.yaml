@@ -10,45 +10,95 @@ dataset:
   val_split: 0.1
   test_split: 0.1
 
-# Joint Processing Rules (Mirror Mappings)
+# Joint Processing Rules (xMirror Mappings)
 joint_mirror_rules:
   aloha:
+    - source: right_arm_joint_1_rad
+      target: left_arm_joint_1_rad
+      scale: -1.0
+    - source: left_arm_joint_1_rad
+      target: right_arm_joint_1_rad
+      scale: -1.0
+    - source: right_arm_joint_2_rad
+      target: left_arm_joint_2_rad
+      scale: 1.0
+    - source: left_arm_joint_2_rad
+      target: right_arm_joint_2_rad
+      scale: 1.0
+    - source: right_arm_joint_3_rad
+      target: left_arm_joint_3_rad
+      scale: 1.0
+    - source: left_arm_joint_3_rad
+      target: right_arm_joint_3_rad
+      scale: 1.0
+    - source: right_arm_joint_4_rad
+      target: left_arm_joint_4_rad
+      scale: -1.0
+    - source: left_arm_joint_4_rad
+      target: right_arm_joint_4_rad
+      scale: -1.0
+    - source: right_arm_joint_5_rad
+      target: left_arm_joint_5_rad
+      scale: 1.0
+    - source: left_arm_joint_5_rad
+      target: right_arm_joint_5_rad
+      scale: 1.0
+    - source: right_arm_joint_6_rad
+      target: left_arm_joint_6_rad
+      scale: -1.0
+    - source: left_arm_joint_6_rad
+      target: right_arm_joint_6_rad
+      scale: -1.0
+    - source: right_gripper_open
+      target: left_gripper_open
+      scale: 1.0
+    - source: left_gripper_open
+      target: right_gripper_open
+      scale: 1.0
+
+  agilex:
     - source: left_waist
       target: right_waist
       scale: -1.0
     - source: right_waist
       target: left_waist
       scale: -1.0
+
     - source: left_shoulder
       target: right_shoulder
       scale: 1.0
     - source: right_shoulder
       target: left_shoulder
       scale: 1.0
+
     - source: left_elbow
       target: right_elbow
       scale: 1.0
     - source: right_elbow
       target: left_elbow
       scale: 1.0
+
     - source: left_forearm_roll
       target: right_forearm_roll
       scale: 1.0
     - source: right_forearm_roll
       target: left_forearm_roll
       scale: 1.0
+
     - source: left_wrist_angle
       target: right_wrist_angle
       scale: -1.0
     - source: right_wrist_angle
       target: left_wrist_angle
       scale: -1.0
+
     - source: left_wrist_rotate
       target: right_wrist_rotate
       scale: -1.0
     - source: right_wrist_rotate
       target: left_wrist_rotate
       scale: -1.0
+
     - source: left_gripper
       target: right_gripper
       scale: 1.0
@@ -56,144 +106,18 @@ joint_mirror_rules:
       target: left_gripper
       scale: 1.0
 
-    # - source: left_joint_1
-    #   target: right_joint_1
-    #   scale: -1.0
-    # - source: right_joint_1
-    #   target: left_joint_1
-    #   scale: -1.0
-    # - source: left_joint_2
-    #   target: right_joint_2
-    #   scale: 1.0
-    # - source: right_joint_2
-    #   target: left_joint_2
-    #   scale: 1.0
-    # - source: left_joint_3
-    #   target: right_joint_3
-    #   scale: 1.0
-    # - source: right_joint_3
-    #   target: left_joint_3
-    #   scale: 1.0
-    # - source: left_joint_4
-    #   target: right_joint_4
-    #   scale: 1.0
-    # - source: right_joint_4
-    #   target: left_joint_4
-    #   scale: 1.0
-    # - source: left_joint_5
-    #   target: right_joint_5
-    #   scale: -1.0
-    # - source: right_joint_5
-    #   target: left_joint_5
-    #   scale: -1.0
-    # - source: left_joint_6
-    #   target: right_joint_6
-    #   scale: -1.0
-    # - source: right_joint_6
-    #   target: left_joint_6
-    #   scale: -1.0
-    # - source: left_gripper
-    #   target: right_gripper
-    #   scale: 1.0
-    # - source: right_gripper
-    #   target: left_gripper
-    #   scale: 1.0
 
-    # - source: left_joint_1
-    #   target: right_joint_1
-    #   scale: -1.0
-    # - source: right_joint_1
-    #   target: left_joint_1
-    #   scale: -1.0
-    # - source: left_joint_2
-    #   target: right_joint_2
-    #   scale: 1.0
-    # - source: right_joint_2
-    #   target: left_joint_2
-    #   scale: 1.0
-    # - source: left_joint_3
-    #   target: right_joint_3
-    #   scale: 1.0
-    # - source: right_joint_3
-    #   target: left_joint_3
-    #   scale: 1.0
-    # - source: left_joint_4
-    #   target: right_joint_4
-    #   scale: -1.0
-    # - source: right_joint_4
-    #   target: left_joint_4
-    #   scale: -1.0
-    # - source: left_joint_5
-    #   target: right_joint_5
-    #   scale: 1.0
-    # - source: right_joint_5
-    #   target: left_joint_5
-    #   scale: 1.0
-    # - source: left_joint_6
-    #   target: right_joint_6
-    #   scale: 1.0
-    # - source: right_joint_6
-    #   target: left_joint_6
-    #   scale: 1.0
-    # - source: left_gripper_open
-    #   target: right_gripper_open
-    #   scale: 1.0
-    # - source: right_gripper_open
-    #   target: left_gripper_open
-    #   scale: 1.0
 
-  realman:
-    - source: left_joint_1
-      target: right_joint_1
-      scale: -1.0
-    - source: right_joint_1
-      target: left_joint_1
-      scale: -1.0
-    - source: left_joint_2
-      target: right_joint_2
-      scale: -1.0
-    - source: right_joint_2
-      target: left_joint_2
-      scale: -1.0
-    - source: left_joint_3
-      target: right_joint_3
-      scale: -1.0
-    - source: right_joint_3
-      target: left_joint_3
-      scale: -1.0
-    - source: left_joint_4
-      target: right_joint_4
-      scale: -1.0
-    - source: right_joint_4
-      target: left_joint_4
-      scale: -1.0
-    - source: left_joint_5
-      target: right_joint_5
-      scale: -1.0
-    - source: right_joint_5
-      target: left_joint_5
-      scale: -1.0
-    - source: left_joint_6
-      target: right_joint_6
-      scale: -1.0
-    - source: right_joint_6
-      target: left_joint_6
-      scale: -1.0
-    - source: left_arm_joint_7_rad
-      target: right_arm_joint_7_rad
-      scale: -1.0
-    - source: right_arm_joint_7_rad
-      target: left_arm_joint_7_rad
-      scale: -1.0
-    - source: left_gripper_open
-      target: right_gripper_open
-      scale: 1.0
-    - source: right_gripper_open
-      target: left_gripper_open
-      scale: 1.0
+# LLM-Guided Spatio-Temporal Reconstruction (Stage 2, paper Sec. IV-B)
+stage2:
+  # Number of manipulation units (time segments) per single-arm trajectory.
+  default_n_units: 4
+  # Default planner: 'default' (deterministic, no API key) or 'openai' (GPT-4.1).
+  planner: "default"
+  model: "gpt-4.1"
+  source_arm: "R"   # arm active in the original single-arm demonstration
 
 # Video Processing Defaults
 video_processing:
   target_fps: 30
-  target_resolution: [1920, 1080]
   checksum: true

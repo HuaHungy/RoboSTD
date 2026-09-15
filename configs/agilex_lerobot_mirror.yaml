@@ -1,0 +1,65 @@
+# Agilex LeRobot mirror rules for datasets whose parquet fields use:
+# - leader_joint{1..6}_{left|right}.pos
+# - leader_gripper_{left|right}.pos
+# - follower_joint{1..6}_{left|right}.pos
+# - follower_gripper_{left|right}.pos
+#
+# Notes:
+# 1. This file is intentionally separated from default.yaml because the field
+#    names are specific to this LeRobot export format.
+# 2. The current scales are conservative placeholders so the pipeline can run.
+#    Update each scale to match the true geometric mirror convention of your
+#    robot before relying on the mirrored joints for policy training.
+# 3. Typical mirror rules often require some joints to use -1.0, but that
+#    depends on the robot's joint axis definitions.
+
+joint_mirror_rules:
+  agilex:
+    - source: left_waist
+      target: right_waist
+      scale: -1.0
+    - source: right_waist
+      target: left_waist
+      scale: -1.0
+
+    - source: left_shoulder
+      target: right_shoulder
+      scale: 1.0
+    - source: right_shoulder
+      target: left_shoulder
+      scale: 1.0
+
+    - source: left_elbow
+      target: right_elbow
+      scale: 1.0
+    - source: right_elbow
+      target: left_elbow
+      scale: 1.0
+
+    - source: left_forearm_roll
+      target: right_forearm_roll
+      scale: -1.0
+    - source: right_forearm_roll
+      target: left_forearm_roll
+      scale: -1.0
+
+    - source: left_wrist_angle
+      target: right_wrist_angle
+      scale: 1.0
+    - source: right_wrist_angle
+      target: left_wrist_angle
+      scale: 1.0
+
+    - source: left_wrist_rotate
+      target: right_wrist_rotate
+      scale: -1.0
+    - source: right_wrist_rotate
+      target: left_wrist_rotate
+      scale: -1.0
+
+    - source: left_gripper
+      target: right_gripper
+      scale: 1.0
+    - source: right_gripper
+      target: left_gripper
+      scale: 1.0
