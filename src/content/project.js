@@ -82,6 +82,11 @@ export const project = {
     { value: '2.11×', label: 'Cup Collection Gain', note: 'over the single-arm baseline' },
     { value: '13.0 pp', label: 'Final Arm-Side Gap', note: 'reduced from 28.3 pp' },
   ],
+  projectVideo: {
+    src: './media/videos/RoboSTD.mp4',
+    poster: './media/videos/RoboSTD_poster.jpg',
+    title: 'RoboSTD project video',
+  },
   authors: isAnonymousBuild ? anonymousAuthors : publicAuthors,
   affiliation: isAnonymousBuild
     ? 'Submitted to the IEEE International Conference on Robotics and Automation'

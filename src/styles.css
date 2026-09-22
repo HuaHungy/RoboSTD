@@ -457,6 +457,25 @@ img {
   color: rgba(255, 255, 255, 0.78);
 }
 
+.project-video {
+  max-width: 1040px;
+  margin: 22px auto 0;
+  padding: 4px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #2979eb, #6459ea);
+  box-shadow: 0 18px 46px rgba(34, 80, 138, 0.2);
+}
+
+.project-video video {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 0;
+  border-radius: 14px;
+  background: #06101f;
+  object-fit: contain;
+}
+
 .review-badge span {
   width: 7px;
   height: 7px;
@@ -1445,6 +1464,16 @@ footer p {
     min-height: 142px;
   }
 
+  .project-video {
+    margin-top: 18px;
+    padding: 3px;
+    border-radius: 14px;
+  }
+
+  .project-video video {
+    border-radius: 11px;
+  }
+
   .demo-group__heading {
     align-items: start;
     flex-direction: column;
@@ -1612,6 +1641,10 @@ html[data-theme='dark'] .hero-metrics article:not(:first-child):not(:last-child)
 
 html[data-theme='dark'] .hero-metrics small {
   color: #9db0c6;
+}
+
+html[data-theme='dark'] .project-video {
+  box-shadow: 0 20px 52px rgba(0, 0, 0, 0.38);
 }
 
 html[data-theme='dark'] .section--soft,

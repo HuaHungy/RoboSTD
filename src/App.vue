@@ -173,6 +173,19 @@ onBeforeUnmount(() => {
             <small>{{ metric.note }}</small>
           </article>
         </div>
+
+        <div class="project-video" data-reveal>
+          <video
+            controls
+            playsinline
+            preload="metadata"
+            :poster="project.projectVideo.poster"
+            :aria-label="project.projectVideo.title"
+          >
+            <source :src="project.projectVideo.src" type="video/mp4" />
+            Your browser does not support embedded video.
+          </video>
+        </div>
       </div>
     </section>
 
