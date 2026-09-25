@@ -1,7 +1,7 @@
 """
-python '/home/huahungy/act/scripts/RoboSTD/scripts/act_hdf5_mirror.py' \
-    --input_dir act_dataset/Agilex_Cobot_Magic_Put_the_towel_in_the_basket_left_0508/ \
-    --output_dir act_dataset/Agilex_Cobot_Magic_Put_the_towel_in_the_basket_left_0508_mirrored \
+python scripts/act_hdf5_mirror.py \
+    --input_dir ./datasets/act_input \
+    --output_dir ./outputs/act_mirrored \
     --joint_mode aloha14
 """
 

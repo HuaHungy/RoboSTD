@@ -10,7 +10,9 @@ import subprocess
 from pathlib import Path
 
 # Add project root to path
-sys.path.append("/home/huahungy/RoboSTD/RoboSTD_Unified")
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
 from src.pipeline_core import Pipeline
 
@@ -19,6 +21,16 @@ print("Test file loaded.")
 class TestAV1Fix(unittest.TestCase):
     def setUp(self):
         print("Setting up test environment...")
+        self.src_video = os.environ.get("ROBOSTD_AV1_FIXTURE", "")
+        if (
+            not self.src_video
+            or not Path(self.src_video).is_file()
+            or not shutil.which("ffmpeg")
+            or not shutil.which("ffprobe")
+        ):
+            self.skipTest(
+                "set ROBOSTD_AV1_FIXTURE to an AV1 video and install ffmpeg/ffprobe"
+            )
         self.test_dir = Path("test_av1_data")
         if self.test_dir.exists():
             shutil.rmtree(self.test_dir)
@@ -44,7 +56,6 @@ class TestAV1Fix(unittest.TestCase):
             json.dump({"features": {"joint_pos": {"names": ["j1"]}}}, f)
 
         # Copy the actual problematic video for testing
-        self.src_video = "/home/huahungy/RoboSTD/Cobot_Magic_move_plate_qced_hardlink/videos/chunk-000/observation.images.cam_head_rgb/episode_000056.mp4"
         self.dest_video = self.test_dir / "videos/chunk-000/observation.images.cam_head_rgb/episode_000056.mp4"
         shutil.copy(self.src_video, self.dest_video)
         print(f"Copied source video to {self.dest_video}")
@@ -71,10 +82,7 @@ class TestAV1Fix(unittest.TestCase):
         self.assertTrue(success)
         
         # Verify output
-        subdirs = [d for d in self.output_dir.iterdir() if d.is_dir()]
-        self.assertTrue(len(subdirs) > 0, "No output directory created")
-        res_dir = subdirs[0]
-        out_vid = res_dir / "videos/chunk-000/observation.images.cam_head_rgb/episode_000056.mp4"
+        out_vid = self.output_dir / "videos/chunk-000/observation.images.cam_head_rgb/episode_000056.mp4"
         
         self.assertTrue(out_vid.exists(), f"Output video not found at {out_vid}")
         

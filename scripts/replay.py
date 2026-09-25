@@ -8,25 +8,14 @@
 - version: 机器人版本（默认为 default_version）
 """
 
-""" Usage example:
+"""Usage example:
 python scripts/replay.py \
-    --repo_path /home/huahungy/act/data/aloha/Agilex_Cobot_Magic_pick_up_bottle_left \
-    --config_name agilex \
-    --data_source data \
-    --data_type all \
-    --episode_idx 0 \
-    --version default_version
-
-python scripts/replay.py \
-    --repo_path data/input/CoRobot_dataset/aloha_adjustbottle_left_source \
+    --repo_path ./datasets/lerobot_input \
     --config_name aloha_v1 \
     --data_source data \
     --data_type all \
     --episode_idx 0 \
     --version default_version
-
-python scripts/replay.py     --repo_path data/output/20260311_105118     --config_name aloha_v1     --data_source data     --data_type all     --episode_idx 0     --version default_version
-
 """
 
 import argparse

@@ -4,16 +4,19 @@ import unittest
 import cv2
 import numpy as np
 import sys
+import tempfile
 from pathlib import Path
 
 # Add project root to path
-sys.path.append("/home/huahungy/RoboSTD/RoboSTD_Unified")
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 from scripts.corobot_mirror_tool import process_directory
 
 class TestMirrorTool(unittest.TestCase):
     def setUp(self):
-        self.test_root = Path("test_mirror_data")
-        if self.test_root.exists(): shutil.rmtree(self.test_root)
+        self.tempdir = tempfile.TemporaryDirectory(prefix="robostd_mirror_tool_")
+        self.test_root = Path(self.tempdir.name) / "test_mirror_data"
         self.test_root.mkdir()
         
         # Create structure
@@ -39,8 +42,7 @@ class TestMirrorTool(unittest.TestCase):
         self.create_video(self.right_dir / "right.mp4", mark_pos=(75, 75))
 
     def tearDown(self):
-        if self.test_root.exists(): shutil.rmtree(self.test_root)
-        if Path("test_mirror_data_backups").exists(): shutil.rmtree("test_mirror_data_backups") # In case it creates outside
+        self.tempdir.cleanup()
 
     def create_video(self, path, mark_pos):
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')

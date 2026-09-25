@@ -88,14 +88,9 @@ joint_mirror_rules:
         success = pipeline.process_dataset(str(self.test_dir), str(self.output_dir), ops)
         self.assertTrue(success)
         
-        # Verify output exists
-        # Find timestamp dir
-        subdirs = [d for d in self.output_dir.iterdir() if d.is_dir()]
-        self.assertEqual(len(subdirs), 1)
-        res_dir = subdirs[0]
-        
-        out_vid = res_dir / "videos/chunk-000/observation.images.cam_left_wrist_rgb/episode_000000.mp4"
-        out_pq = res_dir / "data/chunk-000/episode_000000.parquet"
+        # The pipeline writes directly into the requested output root.
+        out_vid = self.output_dir / "videos/chunk-000/observation.images.cam_right_wrist_rgb/episode_000000.mp4"
+        out_pq = self.output_dir / "data/chunk-000/episode_000000.parquet"
         
         self.assertTrue(out_vid.exists())
         self.assertTrue(out_pq.exists())

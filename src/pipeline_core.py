@@ -12,7 +12,7 @@ from pathlib import Path
 # Import our modules
 from src.joint_processor import JointProcessor
 from src.image_mirror import mirror_image_dir
-from src import robostd_stage2
+from src.dataset_reconstruction import reconstruct_lerobot_dataset
 from src import video_converter, video_mirror, video_reverse, video_basic_cropper, video_advanced_cropper, video_stitcher, video_mask_mirror, video_inspector
 
 # Setup logging
@@ -153,79 +153,34 @@ class Pipeline:
         return True
 
     def reconstruct_dataset(self, input_dir, mirror_dir, output_dir,
-                            n_units=None, source_arm='R', language='',
-                            planner_name='default', objects=None, workspace=None):
-        """
-        RoboSTD Stage 2: LLM-guided spatio-temporal reconstruction (Algorithm 1).
-
-        Pairs each single-arm parquet in ``input_dir`` with its sagittal-mirrored
-        counterpart in ``mirror_dir`` (produced by the ``mirror`` op) and composes
-        them into pseudo-bimanual supervision via the rearrangement operator R.
-
-        Returns True if all episodes were reconstructed successfully.
-        """
-        input_path, mirror_path, output_path = Path(input_dir), Path(mirror_dir), Path(output_dir)
-        output_path.mkdir(parents=True, exist_ok=True)
-
-        parquet_files = sorted(input_path.glob('data/chunk-*/episode_*.parquet'))
-        if not parquet_files:
-            logger.error(f"No single-arm parquet found under {input_path}")
-            return False
-
+                            n_units=None, source_arm=None, language='',
+                            planner_name=None, objects=None, workspace=None,
+                            action_mode=None, allow_planner_fallback=None,
+                            constraints_payload=None, unit_names=None,
+                            overwrite=False):
+        """Run paper Algorithm 1 and materialize a complete LeRobot dataset."""
         stage2_cfg = self.config.get('stage2', {}) if self.config else {}
-        n_units = n_units if n_units is not None else stage2_cfg.get('default_n_units', 4)
-        source_arm = (source_arm or stage2_cfg.get('source_arm', 'R')).upper()
-        planner_name = planner_name or stage2_cfg.get('planner', 'default')
-        model = stage2_cfg.get('model', 'gpt-4.1')
-        task_context = {'language': language, 'objects': objects or None, 'workspace': workspace or None}
-
-        planner = robostd_stage2.build_planner(name=planner_name, source_arm=source_arm, model=model)
-
-        success = fail = 0
-        for pq_file in parquet_files:
-            rel = pq_file.relative_to(input_path)
-            mir_file = mirror_path / rel
-            if not mir_file.exists():
-                logger.warning(f"Mirrored parquet not found: {mir_file}")
-                fail += 1
-                continue
-
-            out_pq = output_path / rel
-            out_pq.parent.mkdir(parents=True, exist_ok=True)
-
-            try:
-                import numpy as np
-                import pandas as pd
-
-                state_orig = np.vstack(pd.read_parquet(pq_file)['observation.state'].values)
-                state_mir = np.vstack(pd.read_parquet(mir_file)['observation.state'].values)
-                action_orig = np.vstack(pd.read_parquet(pq_file)['action'].values)
-                action_mir = np.vstack(pd.read_parquet(mir_file)['action'].values)
-
-                n_frames = state_orig.shape[0]
-                if state_mir.shape[0] != n_frames:
-                    logger.warning(f"Frame mismatch {pq_file.name} ({n_frames} vs {state_mir.shape[0]})")
-                    fail += 1
-                    continue
-
-                units = robostd_stage2.decompose_units(n_frames, n_units=n_units)
-                constraints = planner.generate_constraints(units, task_context, source_arm)
-                bi_state, bi_action, plan = robostd_stage2.rearrange_pseudo_bimanual(
-                    state_orig, state_mir, action_orig, action_mir,
-                    constraints=constraints, units=units, source_arm=source_arm)
-
-                df_out = pd.read_parquet(pq_file)
-                df_out['observation.state'] = [np.asarray(r, dtype=np.float32) for r in bi_state]
-                df_out['action'] = [np.asarray(r, dtype=np.float32) for r in bi_action]
-                df_out.to_parquet(out_pq, engine='pyarrow')
-                logger.info(f"Reconstructed pseudo-bimanual: {out_pq} (plan: {plan})")
-                success += 1
-            except Exception as e:
-                logger.error(f"Reconstruction failed for {pq_file.name}: {e}", exc_info=True)
-                fail += 1
-
-        logger.info(f"Reconstruction complete. Success: {success}, Fail: {fail}")
-        return fail == 0
+        return reconstruct_lerobot_dataset(
+            input_dir,
+            mirror_dir,
+            output_dir,
+            n_units=n_units if n_units is not None else stage2_cfg.get('default_n_units', 4),
+            source_arm=(source_arm or stage2_cfg.get('source_arm', 'R')).upper(),
+            language=language,
+            planner_name=planner_name or stage2_cfg.get('planner', 'openai'),
+            model=stage2_cfg.get('model', 'gpt-4.1'),
+            objects=objects,
+            workspace=workspace,
+            action_mode=action_mode or stage2_cfg.get('action_mode', 'position'),
+            allow_planner_fallback=(
+                allow_planner_fallback
+                if allow_planner_fallback is not None
+                else stage2_cfg.get('allow_planner_fallback', False)
+            ),
+            constraints_payload=constraints_payload,
+            unit_names=unit_names,
+            overwrite=overwrite,
+        )
 
     def process_episode(self, video_in, joint_in, video_out, joint_out, operations, field_map):
         """

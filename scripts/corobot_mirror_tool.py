@@ -7,6 +7,8 @@ import time
 from pathlib import Path
 from datetime import datetime
 
+import cv2
+
 # Setup logging
 logging.basicConfig(
     level=logging.INFO,
@@ -39,6 +41,33 @@ def mirror_video(input_path, output_path):
     Mirror video horizontally using ffmpeg.
     Preserves metadata and attempts to maintain quality.
     """
+    if shutil.which("ffmpeg") is None:
+        logger.warning("ffmpeg is unavailable; using the OpenCV MP4 fallback")
+        capture = cv2.VideoCapture(input_path)
+        if not capture.isOpened():
+            logger.error("Could not open %s", input_path)
+            return False
+        width = int(capture.get(cv2.CAP_PROP_FRAME_WIDTH))
+        height = int(capture.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        fps = float(capture.get(cv2.CAP_PROP_FPS) or 30.0)
+        writer = cv2.VideoWriter(
+            output_path, cv2.VideoWriter_fourcc(*"mp4v"), fps, (width, height)
+        )
+        if not writer.isOpened():
+            capture.release()
+            logger.error("Could not create %s", output_path)
+            return False
+        try:
+            while True:
+                ok, frame = capture.read()
+                if not ok:
+                    break
+                writer.write(cv2.flip(frame, 1))
+        finally:
+            capture.release()
+            writer.release()
+        return True
+
     try:
         # Detect codec to match input if possible, or default to h264
         codec = get_video_codec(input_path)
@@ -232,7 +261,7 @@ def process_directory(root_dir):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="CoRobot Video Mirror Tool")
-    parser.add_argument("--root", default="/home/huahungy/RoboSTD/RoboSTD_Unified/data/input/CoRobot_dataset/aloha_adjustbottle_left_source/videos", help="Root directory of videos")
+    parser.add_argument("--root", required=True, help="Root directory of videos")
     args = parser.parse_args()
     
     process_directory(args.root)

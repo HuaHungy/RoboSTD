@@ -1,131 +1,141 @@
-"""
-RoboSTD: zero-shot Single-to-Dual demonstration construction (Algorithm 1).
+#!/usr/bin/env python3
+"""Reconstruct one RoboSTD pseudo-bimanual parquet with Algorithm 1."""
 
-Stage 0 (prerequisite): the sagittal-mirrored contralateral parquet, produced by
-    python scripts/main.py --input <orig> --output <mir> --rule agilex --ops mirror
-Stage 2 (this tool): LLM-guided spatio-temporal reconstruction that composes the
-original single-arm parquet together with its mirrored version into a
-pseudo-bimanual parquet (14-DoF layout ``[left(7), right(7)]``).
-
-Usage
------
-    python scripts/robostd_reconstruct.py \
-        --input data/RoboTwin/data/episode_000000.parquet \
-        --mirror data/RoboTwin_mir/data/episode_000000.parquet \
-        --output data/RoboTwin_bi/data/episode_000000.parquet \
-        --source-arm R --n-units 4 \
-        --language "place the bowl on the plate" \
-        --planner openai            # or 'default' (deterministic, no API key)
-"""
+from __future__ import annotations
 
 import argparse
+import json
 import logging
 import sys
 from pathlib import Path
 
-import numpy as np
 import pandas as pd
 
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
+from src.dataset_reconstruction import _read_vectors, reconstruct_dataframe  # noqa: E402
 from src.robostd_stage2 import (  # noqa: E402
     build_planner,
     decompose_units,
     parse_constraints_dict,
-    rearrange_pseudo_bimanual,
+    parse_units_payload,
+    reconstruct_pseudo_bimanual,
 )
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger("robostd_reconstruct")
 
-STATE_COL = "observation.state"
-ACTION_COL = "action"
+
+def _json_value(value: str):
+    path = Path(value)
+    text = path.read_text(encoding="utf-8-sig") if path.exists() else value
+    return json.loads(text)
 
 
-def _read_14(df: pd.DataFrame, col: str) -> np.ndarray:
-    vals = df[col].values
-    first = vals[0]
-    if isinstance(first, (list, np.ndarray)) and np.ndim(first) == 1:
-        return np.vstack(vals).astype(np.float64)
-    raise ValueError(f"Column {col} is not stored as 14-D vector sequences")
-
-
-def _write_14(df_out: pd.DataFrame, col: str, arr: np.ndarray) -> None:
-    df_out[col] = [np.asarray(row, dtype=np.float32) for row in arr]
-
-
-def main():
-    parser = argparse.ArgumentParser(description="RoboSTD Stage 2: pseudo-bimanual reconstruction")
+def main() -> int:
+    parser = argparse.ArgumentParser(description="RoboSTD Stage 2 reconstruction")
     parser.add_argument("--input", required=True, help="Original single-arm parquet")
-    parser.add_argument("--mirror", required=True, help="Sagittal-mirrored parquet (Stage 1 output)")
+    parser.add_argument("--mirror", required=True, help="Stage 1 mirrored parquet")
     parser.add_argument("--output", required=True, help="Output pseudo-bimanual parquet")
-    parser.add_argument("--source-arm", default="R", choices=["L", "R"],
-                        help="Arm active in the original single-arm demo")
-    parser.add_argument("--n-units", type=int, default=None, help="Number of manipulation units")
-    parser.add_argument("--unit-names", default=None,
-                        help="Comma-separated unit names (e.g. 'grasp,lift,approach,place')")
-    parser.add_argument("--planner", default="default", choices=["default", "openai"],
-                        help="Coordination-constraint planner")
-    parser.add_argument("--model", default="gpt-4.1", help="LLM model (openai planner)")
-    parser.add_argument("--language", default="", help="Task language instruction (LLM context)")
-    parser.add_argument("--objects", default="", help="Object identities/locations (LLM context)")
-    parser.add_argument("--workspace", default="", help="Workspace/reachability/safety (LLM context)")
-    parser.add_argument("--constraints-json", default=None,
-                        help="Precomputed G as JSON (skips planner); OTHERS ignored")
+    parser.add_argument("--source-arm", default="R", choices=["L", "R"])
+    parser.add_argument("--n-units", type=int, default=4)
+    parser.add_argument("--unit-names", help="Comma-separated semantic unit names")
+    parser.add_argument("--unit-boundaries", help="Comma-separated boundaries including 0 and T")
+    parser.add_argument("--units-json", help="JSON file/list with id, start, end, and name")
+    parser.add_argument("--planner", default="openai", choices=["default", "openai"])
+    parser.add_argument("--model", default="gpt-4.1")
+    parser.add_argument("--allow-planner-fallback", action="store_true")
+    parser.add_argument("--language", default="")
+    parser.add_argument("--objects", default="")
+    parser.add_argument("--workspace", default="")
+    parser.add_argument("--constraints-json", help="Inline JSON or a JSON file")
+    parser.add_argument("--action-mode", default="position", choices=["position", "delta"])
+    parser.add_argument("--fps", type=float, default=None)
+    parser.add_argument("--plan-output", help="Optional JSON schedule output")
     args = parser.parse_args()
 
-    input_path, mirror_path, output_path = (Path(args.input), Path(args.mirror), Path(args.output))
-    output_path.parent.mkdir(parents=True, exist_ok=True)
+    original = pd.read_parquet(args.input)
+    mirrored = pd.read_parquet(args.mirror)
+    if len(original) != len(mirrored):
+        raise ValueError("original and mirrored episodes must have equal frame counts")
+    state_orig = _read_vectors(original, "observation.state")
+    state_mir = _read_vectors(mirrored, "observation.state")
+    action_orig = _read_vectors(original, "action")
+    action_mir = _read_vectors(mirrored, "action")
 
-    df_orig = pd.read_parquet(input_path)
-    df_mir = pd.read_parquet(mirror_path)
+    if args.units_json:
+        units = parse_units_payload(_json_value(args.units_json), len(original))
+    else:
+        names = [value.strip() for value in args.unit_names.split(",")] if args.unit_names else None
+        boundaries = (
+            [int(value) for value in args.unit_boundaries.split(",")]
+            if args.unit_boundaries
+            else None
+        )
+        units = decompose_units(len(original), args.n_units, names, boundaries)
 
-    state_orig = _read_14(df_orig, STATE_COL)
-    state_mir = _read_14(df_mir, STATE_COL)
-    action_orig = _read_14(df_orig, ACTION_COL)
-    action_mir = _read_14(df_mir, ACTION_COL)
-
-    n_frames = state_orig.shape[0]
-    for name, arr in (("mirror", state_mir),):
-        if arr.shape[0] != n_frames:
-            raise ValueError(f"{name} parquet has {arr.shape[0]} frames, expected {n_frames}")
-
-    unit_names = [s.strip() for s in args.unit_names.split(",")] if args.unit_names else None
-    units = decompose_units(n_frames, args.n_units, unit_names)
-    logger.info("Decomposed trajectory of %d frames into %d units", n_frames, len(units))
-
-    task_context = {
+    context = {
         "language": args.language,
         "objects": args.objects or None,
         "workspace": args.workspace or None,
     }
-
     if args.constraints_json:
-        import json
-
-        constraints = parse_constraints_dict(json.loads(args.constraints_json))
-        logger.info("Using precomputed constraints: %s", constraints)
+        constraints = parse_constraints_dict(
+            _json_value(args.constraints_json), [unit.id for unit in units]
+        )
     else:
-        planner = build_planner(name=args.planner, source_arm=args.source_arm, model=args.model)
-        constraints = planner.generate_constraints(units, task_context, args.source_arm)
+        planner = build_planner(
+            args.planner,
+            source_arm=args.source_arm,
+            model=args.model,
+            allow_fallback=args.allow_planner_fallback,
+        )
+        constraints = planner.generate_constraints(units, context, args.source_arm)
 
-    bi_state, bi_action, plan = rearrange_pseudo_bimanual(
-        state_orig, state_mir, action_orig, action_mir,
-        constraints=constraints, units=units, source_arm=args.source_arm,
+    result = reconstruct_pseudo_bimanual(
+        state_orig,
+        state_mir,
+        action_orig,
+        action_mir,
+        constraints,
+        units,
+        args.source_arm,
+        args.action_mode,
     )
+    output = reconstruct_dataframe(
+        original,
+        mirrored,
+        result,
+        args.language,
+        fps=args.fps,
+    )
+    output_path = Path(args.output)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output.to_parquet(output_path, engine="pyarrow", index=False)
 
-    for p in plan:
-        logger.info("unit %d %-16s frames=%-10s arm=%s source=%s",
-                    p["unit"], p["name"], str(p["frames"]), p["arm"], p["skill_source"])
-
-    # Build the output parquet: reuse the observation columns that are not
-    # the 14-d state/action (images, timestamps, indices, ...) unchanged.
-    df_out = df_orig.copy()
-    _write_14(df_out, STATE_COL, bi_state)
-    _write_14(df_out, ACTION_COL, bi_action)
-    df_out.to_parquet(output_path, engine="pyarrow")
-    logger.info("Wrote pseudo-bimanual parquet: %s", output_path)
+    plan_path = (
+        Path(args.plan_output)
+        if args.plan_output
+        else output_path.with_suffix(".plan.json")
+    )
+    plan_path.write_text(
+        json.dumps(
+            {
+                "constraints": {
+                    "rho": constraints.rho,
+                    "e_pre": constraints.e_pre,
+                    "e_conf": constraints.e_conf,
+                },
+                "plan": result.plan,
+            },
+            indent=2,
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+    logger.info("Wrote %s (%d frames) and %s", output_path, len(output), plan_path)
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

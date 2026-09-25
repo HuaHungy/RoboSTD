@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-python /home/huahungy/act/scripts/RoboSTD/scripts/lerobot_image_mirror.py \
-  --input-root /home/huahungy/act/data/merged_Agilex_Cobot_Magic_pick_up_bowl_right \
+python scripts/lerobot_image_mirror.py \
+  --input-root ./datasets/lerobot_input \
   --mode full \
-  --joint-rule-config /home/huahungy/act/scripts/RoboSTD/configs/agilex_lerobot_mirror.yaml \
+  --joint-rule-config ./configs/agilex_lerobot_mirror.yaml \
   --rule-name agilex \
   --overwrite
 

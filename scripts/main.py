@@ -1,40 +1,18 @@
+"""RoboSTD command-line entry point.
+
+Example:
+    python scripts/main.py \
+        --input ./datasets/lerobot_input \
+        --output ./outputs/lerobot_mirrored \
+        --rule aloha \
+        --ops mirror
 """
-python scripts/main.py \
-    --input /home/huahungy/hf_cache/lerobot/aloha_all_both_origin_50 \
-    --output /home/huahungy/hf_cache/lerobot/aloha_all_both_origin_50/ \
-    --rule agilex \
-    --ops mirror
-python scripts/main.py \
-    --input /home/huahungy/hf_cache/lerobot/right_merged_50/ \
-    --output /home/huahungy/hf_cache/lerobot/right_merged_50_mirrored/ \
-    --rule agilex \
-    --ops mirror
-
-python scripts/main.py \
-    --input /home/huaahungy/act/data/Agilex_Cobot_Magic_Put_the_bowl_on_the_plate_right_0509 \
-    --output /home/huahungy/act/data/Agilex_Cobot_Magic_Put_the_bowl_on_the_plate_right_mirrored_0509 \
-    --rule aloha \
-    --ops mirror
-
-python scripts/main.py \
-    --input /home/huaahungy/act/data/Agilex_Cobot_Magic_Put_the_towel_in_the_basket_left_0511 \
-    --output /home/huahungy/act/data/Agilex_Cobot_Magic_Put_the_towel_in_the_basket_left_mirrored_0511 \
-    --rule aloha \
-    --ops mirror
-
-python scripts/main.py \
-    --input /home/huaahungy/act/data/Agilex_Cobot_Magic_Put_the_towel_in_the_basket_right_0509 \
-    --output /home/huahungy/act/data/Agilex_Cobot_Magic_Put_the_towel_in_the_basket_right_mirrored_0509 \
-    --rule aloha \
-    --ops mirror
-
-"""
-
 
 import argparse
 import sys
 import os
 import yaml
+import json
 from pathlib import Path
 
 # Add project root to path
@@ -137,6 +115,18 @@ def main():
     parser.add_argument('--language', default='', help="Task language instruction (reconstruct/LLM context)")
     parser.add_argument('--planner', default=None, choices=['default', 'openai'],
                         help="Coordination-constraint planner (reconstruct)")
+    parser.add_argument('--objects', default='', help="Object identities/locations (reconstruct)")
+    parser.add_argument('--workspace', default='', help="Workspace/reachability/safety constraints")
+    parser.add_argument('--unit-names', default=None,
+                        help="Comma-separated semantic manipulation-unit names")
+    parser.add_argument('--constraints-json', default=None,
+                        help="Constraint JSON file or inline JSON; skips the planner")
+    parser.add_argument('--action-mode', default=None, choices=['position', 'delta'],
+                        help="Inactive-arm action semantics")
+    parser.add_argument('--allow-planner-fallback', action='store_true', default=None,
+                        help="Allow explicit fallback to the w/o-LLM baseline")
+    parser.add_argument('--overwrite', action='store_true',
+                        help="Replace an existing reconstruction output directory")
     
     # If no args, interactive
     if len(sys.argv) == 1:
@@ -160,10 +150,22 @@ def main():
             print("Error: --mirror-input is required for the reconstruct operation.")
             return
         pipeline = Pipeline(args.config, args.rule)
+        constraints_payload = None
+        if args.constraints_json:
+            constraints_path = Path(args.constraints_json)
+            constraints_text = (constraints_path.read_text(encoding='utf-8-sig')
+                                if constraints_path.exists() else args.constraints_json)
+            constraints_payload = json.loads(constraints_text)
+        unit_names = ([name.strip() for name in args.unit_names.split(',')]
+                      if args.unit_names else None)
         pipeline.reconstruct_dataset(
             args.input, args.mirror_input, args.output,
             n_units=args.n_units, source_arm=args.source_arm, language=args.language,
-            planner_name=args.planner,
+            planner_name=args.planner, objects=args.objects or None,
+            workspace=args.workspace or None, action_mode=args.action_mode,
+            allow_planner_fallback=args.allow_planner_fallback,
+            constraints_payload=constraints_payload, unit_names=unit_names,
+            overwrite=args.overwrite,
         )
         return
 

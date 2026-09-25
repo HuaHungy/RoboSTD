@@ -56,6 +56,27 @@ joint_mirror_rules:
       target: right_gripper_open
       scale: 1.0
 
+  # 16-D LeRobot sample layout: [left_joint_1..7, left_gripper,
+  # right_joint_1..7, right_gripper]. The signs follow the verified ALOHA
+  # convention used by the ACT aloha14 path, with an identity gripper map.
+  aloha16:
+    - {source: left_joint_1, target: right_joint_1, scale: -1.0}
+    - {source: right_joint_1, target: left_joint_1, scale: -1.0}
+    - {source: left_joint_2, target: right_joint_2, scale: 1.0}
+    - {source: right_joint_2, target: left_joint_2, scale: 1.0}
+    - {source: left_joint_3, target: right_joint_3, scale: 1.0}
+    - {source: right_joint_3, target: left_joint_3, scale: 1.0}
+    - {source: left_joint_4, target: right_joint_4, scale: -1.0}
+    - {source: right_joint_4, target: left_joint_4, scale: -1.0}
+    - {source: left_joint_5, target: right_joint_5, scale: 1.0}
+    - {source: right_joint_5, target: left_joint_5, scale: 1.0}
+    - {source: left_joint_6, target: right_joint_6, scale: -1.0}
+    - {source: right_joint_6, target: left_joint_6, scale: -1.0}
+    - {source: left_joint_7, target: right_joint_7, scale: 1.0}
+    - {source: right_joint_7, target: left_joint_7, scale: 1.0}
+    - {source: left_gripper, target: right_gripper, scale: 1.0}
+    - {source: right_gripper, target: left_gripper, scale: 1.0}
+
   agilex:
     - source: left_waist
       target: right_waist
@@ -110,12 +131,16 @@ joint_mirror_rules:
 
 # LLM-Guided Spatio-Temporal Reconstruction (Stage 2, paper Sec. IV-B)
 stage2:
-  # Number of manipulation units (time segments) per single-arm trajectory.
+  # Prefer semantic boundaries/labels supplied by the caller. Equal splitting
+  # is retained only as a fallback for legacy datasets.
   default_n_units: 4
-  # Default planner: 'default' (deterministic, no API key) or 'openai' (GPT-4.1).
-  planner: "default"
+  # The paper method uses GPT-4.1. Use 'default' only for the w/o-LLM ablation.
+  planner: "openai"
   model: "gpt-4.1"
   source_arm: "R"   # arm active in the original single-arm demonstration
+  action_mode: "position"  # 'position' repeats current pose; 'delta' uses zero
+  # Avoid silently turning the paper method into the w/o-LLM baseline.
+  allow_planner_fallback: false
 
 # Video Processing Defaults
 video_processing:
